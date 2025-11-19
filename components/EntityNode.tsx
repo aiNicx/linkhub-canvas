@@ -3,7 +3,7 @@ import React, { memo, useCallback, useState } from 'react';
 import { Handle, Position, NodeProps, NodeResizer } from 'reactflow';
 import { Wand2, GripHorizontal } from 'lucide-react';
 import { EntityData } from '../types';
-import { generateDescription } from '../services/geminiService';
+import { generateDescription } from '../services/openrouterService';
 
 // Define the props for the custom node
 const EntityNode = ({ id, data, selected }: NodeProps<EntityData>) => {

@@ -1,0 +1,321 @@
+---
+alwaysApply: true
+---
+# Models
+
+> Access all major language models (LLMs) through OpenRouter's unified API. Browse available models, compare capabilities, and integrate with your preferred provider.
+
+Explore and browse 400+ models and providers [on our website](/models), or [with our API](/docs/api-reference/list-available-models) (including RSS).
+
+## Models API Standard
+
+Our [Models API](/docs/api-reference/list-available-models) makes the most important information about all LLMs freely available as soon as we confirm it.
+
+### API Response Schema
+
+The Models API returns a standardized JSON response format that provides comprehensive metadata for each available model. This schema is cached at the edge and designed for reliable integration for production applications.
+
+#### Root Response Object
+
+```json
+{
+  "data": [
+    /* Array of Model objects */
+  ]
+}
+```
+
+#### Model Object Schema
+
+Each model in the `data` array contains the following standardized fields:
+
+| Field                  | Type                                          | Description                                                                            |
+| ---------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `id`                   | `string`                                      | Unique model identifier used in API requests (e.g., `"google/gemini-2.5-pro-preview"`) |
+| `canonical_slug`       | `string`                                      | Permanent slug for the model that never changes                                        |
+| `name`                 | `string`                                      | Human-readable display name for the model                                              |
+| `created`              | `number`                                      | Unix timestamp of when the model was added to OpenRouter                               |
+| `description`          | `string`                                      | Detailed description of the model's capabilities and characteristics                   |
+| `context_length`       | `number`                                      | Maximum context window size in tokens                                                  |
+| `architecture`         | `Architecture`                                | Object describing the model's technical capabilities                                   |
+| `pricing`              | `Pricing`                                     | Lowest price structure for using this model                                            |
+| `top_provider`         | `TopProvider`                                 | Configuration details for the primary provider                                         |
+| `per_request_limits`   | Rate limiting information (null if no limits) |                                                                                        |
+| `supported_parameters` | `string[]`                                    | Array of supported API parameters for this model                                       |
+
+#### Architecture Object
+
+```typescript
+{
+  "input_modalities": string[], // Supported input types: ["file", "image", "text"]
+  "output_modalities": string[], // Supported output types: ["text"]
+  "tokenizer": string,          // Tokenization method used
+  "instruct_type": string | null // Instruction format type (null if not applicable)
+}
+```
+
+#### Pricing Object
+
+All pricing values are in USD per token/request/unit. A value of `"0"` indicates the feature is free.
+
+```typescript
+{
+  "prompt": string,           // Cost per input token
+  "completion": string,       // Cost per output token
+  "request": string,          // Fixed cost per API request
+  "image": string,           // Cost per image input
+  "web_search": string,      // Cost per web search operation
+  "internal_reasoning": string, // Cost for internal reasoning tokens
+  "input_cache_read": string,   // Cost per cached input token read
+  "input_cache_write": string   // Cost per cached input token write
+}
+```
+
+#### Top Provider Object
+
+```typescript
+{
+  "context_length": number,        // Provider-specific context limit
+  "max_completion_tokens": number, // Maximum tokens in response
+  "is_moderated": boolean         // Whether content moderation is applied
+}
+```
+
+#### Supported Parameters
+
+The `supported_parameters` array indicates which OpenAI-compatible parameters work with each model:
+
+* `tools` - Function calling capabilities
+* `tool_choice` - Tool selection control
+* `max_tokens` - Response length limiting
+* `temperature` - Randomness control
+* `top_p` - Nucleus sampling
+* `reasoning` - Internal reasoning mode
+* `include_reasoning` - Include reasoning in response
+* `structured_outputs` - JSON schema enforcement
+* `response_format` - Output format specification
+* `stop` - Custom stop sequences
+* `frequency_penalty` - Repetition reduction
+* `presence_penalty` - Topic diversity
+* `seed` - Deterministic outputs
+
+<Note title="Different models tokenize text in different ways">
+  Some models break up text into chunks of multiple characters (GPT, Claude,
+  Llama, etc), while others tokenize by character (PaLM). This means that token
+  counts (and therefore costs) will vary between models, even when inputs and
+  outputs are the same. Costs are displayed and billed according to the
+  tokenizer for the model in use. You can use the `usage` field in the response
+  to get the token counts for the input and output.
+</Note>
+
+If there are models or providers you are interested in that OpenRouter doesn't have, please tell us about them in our [Discord channel](https://openrouter.ai/discord).
+
+## For Providers
+
+If you're interested in working with OpenRouter, you can learn more on our [providers page](/docs/use-cases/for-providers).
+
+# Parameters
+
+> Learn about all available parameters for OpenRouter API requests. Configure temperature, max tokens, top_p, and other model-specific settings.
+
+Sampling parameters shape the token generation process of the model. You may send any parameters from the following list, as well as others, to OpenRouter.
+
+OpenRouter will default to the values listed below if certain parameters are absent from your request (for example, `temperature` to 1.0). We will also transmit some provider-specific parameters, such as `safe_prompt` for Mistral or `raw_mode` for Hyperbolic directly to the respective providers if specified.
+
+Please refer to the modelâ€™s provider section to confirm which parameters are supported. For detailed guidance on managing provider-specific parameters, [click here](/docs/features/provider-routing#requiring-providers-to-support-all-parameters-beta).
+
+## Temperature
+
+* Key: `temperature`
+
+* Optional, **float**, 0.0 to 2.0
+
+* Default: 1.0
+
+* Explainer Video: [Watch](https://youtu.be/ezgqHnWvua8)
+
+This setting influences the variety in the model's responses. Lower values lead to more predictable and typical responses, while higher values encourage more diverse and less common responses. At 0, the model always gives the same response for a given input.
+
+## Top P
+
+* Key: `top_p`
+
+* Optional, **float**, 0.0 to 1.0
+
+* Default: 1.0
+
+* Explainer Video: [Watch](https://youtu.be/wQP-im_HInk)
+
+This setting limits the model's choices to a percentage of likely tokens: only the top tokens whose probabilities add up to P. A lower value makes the model's responses more predictable, while the default setting allows for a full range of token choices. Think of it like a dynamic Top-K.
+
+## Top K
+
+* Key: `top_k`
+
+* Optional, **integer**, 0 or above
+
+* Default: 0
+
+* Explainer Video: [Watch](https://youtu.be/EbZv6-N8Xlk)
+
+This limits the model's choice of tokens at each step, making it choose from a smaller set. A value of 1 means the model will always pick the most likely next token, leading to predictable results. By default this setting is disabled, making the model to consider all choices.
+
+## Frequency Penalty
+
+* Key: `frequency_penalty`
+
+* Optional, **float**, -2.0 to 2.0
+
+* Default: 0.0
+
+* Explainer Video: [Watch](https://youtu.be/p4gl6fqI0_w)
+
+This setting aims to control the repetition of tokens based on how often they appear in the input. It tries to use less frequently those tokens that appear more in the input, proportional to how frequently they occur. Token penalty scales with the number of occurrences. Negative values will encourage token reuse.
+
+## Presence Penalty
+
+* Key: `presence_penalty`
+
+* Optional, **float**, -2.0 to 2.0
+
+* Default: 0.0
+
+* Explainer Video: [Watch](https://youtu.be/MwHG5HL-P74)
+
+Adjusts how often the model repeats specific tokens already used in the input. Higher values make such repetition less likely, while negative values do the opposite. Token penalty does not scale with the number of occurrences. Negative values will encourage token reuse.
+
+## Repetition Penalty
+
+* Key: `repetition_penalty`
+
+* Optional, **float**, 0.0 to 2.0
+
+* Default: 1.0
+
+* Explainer Video: [Watch](https://youtu.be/LHjGAnLm3DM)
+
+Helps to reduce the repetition of tokens from the input. A higher value makes the model less likely to repeat tokens, but too high a value can make the output less coherent (often with run-on sentences that lack small words). Token penalty scales based on original token's probability.
+
+## Min P
+
+* Key: `min_p`
+
+* Optional, **float**, 0.0 to 1.0
+
+* Default: 0.0
+
+Represents the minimum probability for a token to be
+considered, relative to the probability of the most likely token. (The value changes depending on the confidence level of the most probable token.) If your Min-P is set to 0.1, that means it will only allow for tokens that are at least 1/10th as probable as the best possible option.
+
+## Top A
+
+* Key: `top_a`
+
+* Optional, **float**, 0.0 to 1.0
+
+* Default: 0.0
+
+Consider only the top tokens with "sufficiently high" probabilities based on the probability of the most likely token. Think of it like a dynamic Top-P. A lower Top-A value focuses the choices based on the highest probability token but with a narrower scope. A higher Top-A value does not necessarily affect the creativity of the output, but rather refines the filtering process based on the maximum probability.
+
+## Seed
+
+* Key: `seed`
+
+* Optional, **integer**
+
+If specified, the inferencing will sample deterministically, such that repeated requests with the same seed and parameters should return the same result. Determinism is not guaranteed for some models.
+
+## Max Tokens
+
+* Key: `max_tokens`
+
+* Optional, **integer**, 1 or above
+
+This sets the upper limit for the number of tokens the model can generate in response. It won't produce more than this limit. The maximum value is the context length minus the prompt length.
+
+## Logit Bias
+
+* Key: `logit_bias`
+
+* Optional, **map**
+
+Accepts a JSON object that maps tokens (specified by their token ID in the tokenizer) to an associated bias value from -100 to 100. Mathematically, the bias is added to the logits generated by the model prior to sampling. The exact effect will vary per model, but values between -1 and 1 should decrease or increase likelihood of selection; values like -100 or 100 should result in a ban or exclusive selection of the relevant token.
+
+## Logprobs
+
+* Key: `logprobs`
+
+* Optional, **boolean**
+
+Whether to return log probabilities of the output tokens or not. If true, returns the log probabilities of each output token returned.
+
+## Top Logprobs
+
+* Key: `top_logprobs`
+
+* Optional, **integer**
+
+An integer between 0 and 20 specifying the number of most likely tokens to return at each token position, each with an associated log probability. logprobs must be set to true if this parameter is used.
+
+## Response Format
+
+* Key: `response_format`
+
+* Optional, **map**
+
+Forces the model to produce specific output format. Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the message the model generates is valid JSON.
+
+**Note**: when using JSON mode, you should also instruct the model to produce JSON yourself via a system or user message.
+
+## Structured Outputs
+
+* Key: `structured_outputs`
+
+* Optional, **boolean**
+
+If the model can return structured outputs using response\_format json\_schema.
+
+## Stop
+
+* Key: `stop`
+
+* Optional, **array**
+
+Stop generation immediately if the model encounter any token specified in the stop array.
+
+## Tools
+
+* Key: `tools`
+
+* Optional, **array**
+
+Tool calling parameter, following OpenAI's tool calling request shape. For non-OpenAI providers, it will be transformed accordingly. [Click here to learn more about tool calling](/docs/requests#tool-calls)
+
+## Tool Choice
+
+* Key: `tool_choice`
+
+* Optional, **array**
+
+Controls which (if any) tool is called by the model. 'none' means the model will not call any tool and instead generates a message. 'auto' means the model can pick between generating a message or calling one or more tools. 'required' means the model must call one or more tools. Specifying a particular tool via `{"type": "function", "function": {"name": "my_function"}}` forces the model to call that tool.
+
+## Parallel Tool Calls
+
+* Key: `parallel_tool_calls`
+
+* Optional, **boolean**
+
+* Default: **true**
+
+Whether to enable parallel function calling during tool use. If true, the model can call multiple functions simultaneously. If false, functions will be called sequentially. Only applies when tools are provided.
+
+## Verbosity
+
+* Key: `verbosity`
+
+* Optional, **enum** (low, medium, high)
+
+* Default: **medium**
+
+Controls the verbosity and length of the model response. Lower values produce more concise responses, while higher values produce more detailed and comprehensive responses.
+

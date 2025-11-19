@@ -117,3 +117,120 @@ const Flow = () => {
   const executeCanvasActions = useCallback((actions: CanvasAction[]) => {
     // Process Node Actions first
     setNodes((currentNodes) => {
+      let updatedNodes = [...currentNodes];
+      
+      actions.forEach((action) => {
+        if (action.type === 'add_node') {
+          const newNode: Node<EntityData> = {
+            id: action.payload.id || `node-${Date.now()}-${Math.random()}`,
+            type: NodeType.ENTITY,
+            position: { 
+              x: action.payload.x || Math.random() * 400 + 50, 
+              y: action.payload.y || Math.random() * 400 + 50 
+            },
+            data: {
+              title: action.payload.title || 'Nuova Entità',
+              content: action.payload.content || '',
+            },
+            style: { width: 250, height: 180 },
+          };
+          updatedNodes.push(newNode);
+        } else if (action.type === 'update_node') {
+          updatedNodes = updatedNodes.map((node) =>
+            node.id === action.payload.id
+              ? {
+                  ...node,
+                  data: {
+                    ...node.data,
+                    title: action.payload.title !== undefined ? action.payload.title : node.data.title,
+                    content: action.payload.content !== undefined ? action.payload.content : node.data.content,
+                  },
+                  position: action.payload.x !== undefined && action.payload.y !== undefined
+                    ? { x: action.payload.x, y: action.payload.y }
+                    : node.position,
+                }
+              : node
+          );
+        } else if (action.type === 'delete_node') {
+          updatedNodes = updatedNodes.filter((node) => node.id !== action.payload.id);
+        }
+      });
+      
+      return updatedNodes;
+    });
+
+    // Process Edge Actions
+    setEdges((currentEdges) => {
+      let updatedEdges = [...currentEdges];
+      
+      actions.forEach((action) => {
+        if (action.type === 'add_edge') {
+          const newEdge: Edge = {
+            id: action.payload.id || `edge-${Date.now()}-${Math.random()}`,
+            source: action.payload.source!,
+            target: action.payload.target!,
+            animated: true,
+            style: { stroke: '#2563eb' },
+          };
+          updatedEdges.push(newEdge);
+        } else if (action.type === 'delete_edge') {
+          updatedEdges = updatedEdges.filter((edge) => edge.id !== action.payload.id);
+        }
+      });
+      
+      return updatedEdges;
+    });
+
+    // Auto-fit view after changes
+    setTimeout(() => fitView({ padding: 0.2, duration: 300 }), 100);
+  }, [setNodes, setEdges, fitView]);
+
+  return (
+    <div style={{ width: '100vw', height: '100vh' }}>
+      <ReactFlow
+        nodes={nodesWithHandler}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        nodeTypes={nodeTypes}
+        connectionMode={ConnectionMode.Loose}
+        fitView
+      >
+        <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="#cbd5e1" />
+        <Controls />
+        
+        {/* Floating Action Buttons */}
+        <Panel position="top-left" className="flex gap-2">
+          <button
+            onClick={addNode}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg transition-colors"
+          >
+            <Plus className="w-5 h-5" />
+            Aggiungi Nodo
+          </button>
+          <button
+            onClick={clearAll}
+            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-lg transition-colors"
+          >
+            <Trash2 className="w-5 h-5" />
+            Cancella Tutto
+          </button>
+        </Panel>
+      </ReactFlow>
+
+      {/* ChatBot */}
+      <ChatBot nodes={nodes} edges={edges} onExecuteActions={executeCanvasActions} />
+    </div>
+  );
+};
+
+const App = () => {
+  return (
+    <ReactFlowProvider>
+      <Flow />
+    </ReactFlowProvider>
+  );
+};
+
+export default App;

@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, Bot, User, Check, Play } from 'lucide-react';
 import { Node, Edge } from 'reactflow';
-import { sendMessageToBot } from '../services/geminiService';
+import { sendMessageToBot } from '../services/openrouterService';
 import { ChatMessage, CanvasAction } from '../types';
 
 interface ChatBotProps {
@@ -44,8 +44,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ nodes, edges, onExecuteActions }) => 
       // 1. Remove the first 'welcome' message (local only)
       // 2. Remove the last message (current user input), because it is sent via sendMessage param, not history
       const apiHistory = newMessages.slice(1, -1).map(m => ({
-        role: m.role,
-        parts: [{ text: m.text || ' ' }]
+        role: m.role === 'model' ? 'assistant' : m.role,
+        content: m.text || ''
       }));
 
       const response = await sendMessageToBot(apiHistory, userText, nodes, edges);
