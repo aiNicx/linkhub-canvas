@@ -62,7 +62,7 @@ const getCanvasTools = () => [{
   type: 'function',
   function: {
     name: 'propose_plan',
-    description: 'Proponi una serie di modifiche al canvas (creazione, modifica, spostamento nodi o collegamenti). Usa questo tool quando l\'utente chiede di creare template o fare modifiche strutturali.',
+    description: 'OBBLIGATORIO: Usa questo tool per proporre modifiche al canvas (creazione, modifica, spostamento nodi o collegamenti). DEVI usare questo tool quando l\'utente chiede di creare template o fare modifiche strutturali. NON mostrare JSON nella risposta testuale - usa SOLO questo tool.',
     parameters: {
       type: 'object',
       properties: {
@@ -128,16 +128,23 @@ const buildSystemPrompt = (nodes: Node[], edges: Edge[]): string => {
 CONTESTO ATTUALE DEL CANVAS:
 ${canvasContext}
 
-REGOLE:
-1. Rispondi in modo utile e conciso in Italiano.
+REGOLE CRITICHE:
+1. Rispondi SEMPRE in modo utile e conciso in Italiano, usando SOLO testo naturale.
 2. Hai pieno accesso visivo (virtuale) al canvas tramite il JSON sopra.
 3. Se l'utente chiede di modificare il canvas (creare template, aggiungere nodi, spostare cose):
    - Se la richiesta è vaga, fai domande di chiarimento.
-   - Se hai abbastanza info, chiama il tool 'propose_plan' con la lista delle azioni.
-   - NON dire "Lo faccio subito", usa il tool per proporre il piano.
+   - Se hai abbastanza info, DEVI OBBLIGATORIAMENTE chiamare il tool 'propose_plan' con la lista delle azioni.
+   - NON mostrare mai JSON, codice o strutture dati nella tua risposta testuale.
+   - NON dire "Lo faccio subito" o "Ecco il piano" e poi mostrare JSON - usa SOLO il tool.
+   - La tua risposta testuale deve essere solo una descrizione umana breve (es. "Ho preparato un piano per creare il template OKR").
    - Quando crei nuovi nodi, inventa ID univoci (es. 'node-timestamp') e posizioni sensate (x, y) per non sovrapporli troppo (distanziali di almeno 300px).
 4. Per creare template (es. OKR, Family Tree), struttura i nodi gerarchicamente.
-5. Sii proattivo nel suggerire miglioramenti alla struttura del diagramma.`;
+5. Sii proattivo nel suggerire miglioramenti alla struttura del diagramma.
+
+IMPORTANTE: 
+- La risposta testuale che vedrà l'utente deve essere SOLO testo naturale, mai JSON o codice.
+- Tutte le azioni sul canvas devono essere proposte tramite il tool 'propose_plan', non nella risposta testuale.
+- Se mostri JSON nella risposta, stai sbagliando. Usa il tool invece.`;
 };
 
 /**
@@ -236,6 +243,53 @@ export const generateDescription = async (title: string): Promise<string> => {
 };
 
 /**
+ * Rimuove blocchi JSON dalla risposta testuale per evitare che vengano mostrati in chat
+ */
+const sanitizeResponseText = (text: string): string => {
+  if (!text) return text;
+  
+  const originalText = text;
+  let sanitized = text;
+  
+  // Pattern per trovare blocchi JSON (anche multilinea)
+  const jsonBlockPattern = /```json\s*[\s\S]*?```/g;
+  if (jsonBlockPattern.test(sanitized)) {
+    console.warn('⚠️ Rilevato JSON nella risposta del bot - rimosso automaticamente');
+    sanitized = sanitized.replace(jsonBlockPattern, '');
+  }
+  
+  // Pattern per blocchi JSON senza markdown (con "description" e "actions")
+  const jsonPattern = /\{[\s\S]*"description"[\s\S]*"actions"[\s\S]*\}/g;
+  if (jsonPattern.test(sanitized)) {
+    console.warn('⚠️ Rilevato JSON nella risposta del bot - rimosso automaticamente');
+    sanitized = sanitized.replace(jsonPattern, '');
+  }
+  
+  // Rimuove anche blocchi di codice generici che contengono JSON
+  const codeBlockPattern = /```[\s\S]*?\{[\s\S]*?\}[\s\S]*?```/g;
+  if (codeBlockPattern.test(sanitized)) {
+    console.warn('⚠️ Rilevato blocco di codice con JSON nella risposta del bot - rimosso automaticamente');
+    sanitized = sanitized.replace(codeBlockPattern, '');
+  }
+  
+  // Pulisce spazi multipli e newline eccessive
+  sanitized = sanitized.replace(/\n{3,}/g, '\n\n').trim();
+  
+  // Se dopo la pulizia non rimane nulla, usa un messaggio di default
+  if (!sanitized || sanitized.length < 3) {
+    console.warn('⚠️ Risposta del bot completamente rimossa (conteneva solo JSON) - usando messaggio di default');
+    return "Ho preparato un piano di modifiche.";
+  }
+  
+  // Log se il testo è stato modificato
+  if (originalText !== sanitized) {
+    console.log('✅ Risposta del bot sanitizzata (rimosso JSON)');
+  }
+  
+  return sanitized;
+};
+
+/**
  * Invia un messaggio al bot e gestisce eventuali tool calls
  */
 export const sendMessageToBot = async (
@@ -283,8 +337,10 @@ export const sendMessageToBot = async (
       if (toolCall.function.name === 'propose_plan') {
         try {
           const args = JSON.parse(toolCall.function.arguments);
+          // Sanitizza anche la descrizione per sicurezza
+          const description = sanitizeResponseText(args.description || "Ho preparato un piano di modifiche.");
           return {
-            text: args.description || "Ho preparato un piano di modifiche.",
+            text: description,
             actions: args.actions,
             actionDescription: args.description
           };
@@ -296,8 +352,12 @@ export const sendMessageToBot = async (
     }
 
     // Risposta normale senza tool calls
+    // Sanitizza la risposta per rimuovere eventuali JSON
+    const rawText = choice.message.content || "Nessuna risposta.";
+    const sanitizedText = sanitizeResponseText(rawText);
+    
     return { 
-      text: choice.message.content || "Nessuna risposta." 
+      text: sanitizedText
     };
 
   } catch (error) {

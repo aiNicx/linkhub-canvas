@@ -76,53 +76,6 @@ export const defaultOpenRouterConfig: OpenRouterConfig = {
 };
 
 /**
- * Configurazioni alternative predefinite per casi d'uso specifici
- */
-export const openRouterPresets = {
-  // Massima qualità - usa i migliori modelli disponibili
-  quality: {
-    ...defaultOpenRouterConfig,
-    model: "anthropic/claude-3.5-sonnet",
-    provider: {
-      sort: 'latency',
-      allow_fallbacks: true,
-    }
-  },
-  
-  // Massima velocità - privilegia throughput
-  speed: {
-    ...defaultOpenRouterConfig,
-    model: "meta-llama/llama-3.3-70b-instruct:nitro",
-    temperature: 0.5,
-    provider: {
-      sort: 'throughput',
-      allow_fallbacks: true,
-    }
-  },
-  
-  // Gratuito - usa solo modelli free
-  free: {
-    ...defaultOpenRouterConfig,
-    model: "google/gemini-2.0-flash-exp:free",
-    provider: {
-      sort: 'price',
-      allow_fallbacks: false,
-    }
-  },
-  
-  // Privacy-first - solo provider che non collezionano dati
-  privacy: {
-    ...defaultOpenRouterConfig,
-    model: "anthropic/claude-3.5-sonnet",
-    provider: {
-      data_collection: 'deny',
-      allow_fallbacks: true,
-      sort: 'price',
-    }
-  }
-};
-
-/**
  * Ottieni la configurazione OpenRouter dalle variabili d'ambiente
  */
 export const getOpenRouterConfig = (): OpenRouterConfig => {
