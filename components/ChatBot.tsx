@@ -16,7 +16,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ nodes, edges, onExecuteActions }) => 
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { id: 'welcome', role: 'model', text: 'Ciao! Sono il tuo assistente Canvas. Posso aiutarti a creare strutture, template (es. OKR) o modificare le entità. Dimmi cosa fare!' }
+    { id: 'welcome', role: 'model', text: '👋 Ciao! Sono il tuo OKR Coach LinkHub.\n\nPosso aiutarti a:\n• Creare uno Strategy Canvas OKR completo\n• Definire Objective, Key Results e Rischi\n• Strutturare KPI e Iniziative\n• Esplorare la metodologia RiskHub\n\nVuoi iniziare creando un nuovo Canvas OKR o hai domande sulla metodologia?' }
   ]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -92,7 +92,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ nodes, edges, onExecuteActions }) => 
         <div className="bg-blue-600 p-4 flex justify-between items-center text-white">
           <div className="flex items-center gap-2">
             <Bot className="w-5 h-5" />
-            <span className="font-semibold">Canvas AI Assistant</span>
+            <span className="font-semibold">OKR Coach LinkHub</span>
           </div>
           <button onClick={() => setIsOpen(false)} className="hover:bg-blue-700 p-1 rounded">
             <X className="w-5 h-5" />
@@ -172,7 +172,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ nodes, edges, onExecuteActions }) => 
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Chiedi di creare un template..."
+              placeholder="Es: Crea un Canvas OKR per vendite..."
               className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white text-gray-900 placeholder-gray-500"
             />
             <button 

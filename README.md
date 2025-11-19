@@ -4,12 +4,14 @@
 
 # LinkHub Canvas
 
-Un'applicazione interattiva per creare e gestire diagrammi a nodi con AI integrata.
+Un'applicazione interattiva per creare e gestire **Strategy Canvas OKR** con un **OKR Coach AI** integrato basato sulla metodologia [LinkHub](https://www.okrlinkhub.com/).
 
 ## 🚀 Caratteristiche
 
-- 🎨 **Canvas Interattivo**: Crea e collega nodi visivamente
-- 🤖 **AI Assistant**: Bot intelligente per creare template e modificare il diagramma
+- 🎨 **Canvas Interattivo**: Crea e collega nodi visivamente per costruire Strategy Canvas
+- 🎯 **OKR Coach AI**: Bot specializzato nella metodologia LinkHub per guidarti nella creazione di OKR
+- 📊 **Metodologia RiskHub**: Struttura completa con Objective, Key Results, Rischi, KPI e Iniziative
+- 🧠 **Cultura Integrata**: Incorpora i tre pilastri LinkHub (Combattere, Consapevolezza, Confronto)
 - 🔄 **OpenRouter Integration**: Accesso a 400+ modelli AI (GPT-4, Claude, Gemini, Llama, ecc.)
 - 💰 **Controllo Costi**: Scegli tra modelli gratuiti, economici o premium
 - 🎯 **Smart Routing**: Fallback automatici e load balancing tra provider
@@ -108,33 +110,76 @@ openRouterPresets.privacy
 
 ## 📚 Documentazione Completa
 
-Per informazioni dettagliate su configurazione, costi e troubleshooting, vedi:
+### Guide Principali
 
-👉 **[Guida Completa OpenRouter](docs/OPENROUTER_SETUP.md)**
+- 👉 **[Quick Start OKR](docs/QUICK-START-OKR.md)** - Inizia in 3 minuti
+- 📖 **[Guida OKR Chatbot](docs/okr-chatbot-guide.md)** - Metodologia completa LinkHub
+- 💬 **[Esempi Conversazioni](docs/CONVERSATION-EXAMPLES.md)** - Come interagire con il Coach
+- 🔧 **[Setup OpenRouter](docs/OPENROUTER_SETUP.md)** - Configurazione AI e costi
+
+### Teoria e Metodologia
+
+- 📚 [Cultura OKR LinkHub](docs/okr-cultura-william.md)
+- 📊 [KR e KPI](docs/okr-kpi-marco.md)
+- 🔍 [Come trovare elementi del Canvas](docs/theory-find.md)
+- 💾 [Sfruttare i dati](docs/theory-sfruttare-dati.md)
 
 ## 🎯 Come Usare
+
+### Canvas Interattivo
 
 1. **Crea Nodi**: Clicca sul pulsante "+" per aggiungere nuovi nodi
 2. **Collega Nodi**: Trascina dalle maniglie per creare collegamenti
 3. **Modifica Contenuto**: Clicca su un nodo per editarlo
-4. **Usa l'AI**: Clicca sull'icona chat per chiedere all'AI di:
-   - Creare template (es. "Crea un template OKR")
-   - Aggiungere nodi (es. "Aggiungi 3 nodi per un sistema di login")
-   - Ristrutturare il diagramma (es. "Organizza i nodi gerarchicamente")
+
+### OKR Coach AI
+
+Clicca sull'icona chat per interagire con il tuo Coach OKR:
+
+**Creare un Canvas OKR:**
+```
+"Crea un Canvas OKR per il mio team di vendite"
+"Voglio definire gli obiettivi del team marketing"
+```
+
+**Esplorare la metodologia:**
+```
+"Spiegami la differenza tra KR e KPI"
+"Cos'è il Peccato Originale?"
+"Come definisco un buon Objective?"
+```
+
+**Usare template predefiniti:**
+```
+"Mostrami un template per team vendite"
+"Crea un Canvas base da personalizzare"
+```
+
+Vedi la [Quick Start Guide](docs/QUICK-START-OKR.md) per esempi completi.
 
 ## 🏗️ Struttura del Progetto
 
 ```
 linkhub-canvas/
 ├── components/          # Componenti React
-│   ├── ChatBot.tsx     # AI Assistant UI
+│   ├── ChatBot.tsx     # OKR Coach UI
 │   └── EntityNode.tsx  # Nodo canvas
 ├── config/             # Configurazioni
-│   └── openrouter.config.ts  # Config OpenRouter
+│   ├── openrouter.config.ts     # Config OpenRouter
+│   ├── okr-templates.ts         # Template OKR predefiniti
+│   └── coaching-questions.ts    # Domande guida metodologia
 ├── services/           # Servizi backend
-│   └── openrouterService.ts  # Integrazione OpenRouter
+│   └── openrouterService.ts     # Integrazione OpenRouter + System Prompt
 ├── docs/              # Documentazione
-│   └── OPENROUTER_SETUP.md
+│   ├── QUICK-START-OKR.md       # Guida rapida
+│   ├── okr-chatbot-guide.md     # Guida completa metodologia
+│   ├── CONVERSATION-EXAMPLES.md # Esempi conversazioni
+│   ├── CHANGELOG-okr-integration.md # Log modifiche
+│   ├── okr-cultura-william.md   # Teoria: Cultura LinkHub
+│   ├── okr-kpi-marco.md         # Teoria: KR e KPI
+│   ├── theory-find.md           # Teoria: Trovare elementi
+│   ├── theory-sfruttare-dati.md # Teoria: Uso dati
+│   └── OPENROUTER_SETUP.md      # Setup AI
 ├── types.ts           # TypeScript types
 ├── App.tsx            # Componente principale
 └── .env.example       # Template variabili d'ambiente
