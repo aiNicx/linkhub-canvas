@@ -1,0 +1,5 @@
+{
+  "name": "LinkHub canvas",
+  "description": "Un'applicazione responsive per la gestione di entità collegate tramite nodi, con funzionalità di ridimensionamento, drag-and-drop e supporto AI per la generazione di contenuti.",
+  "requestFramePermissions": []
+}
