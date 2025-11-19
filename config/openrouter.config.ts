@@ -41,7 +41,7 @@ export const defaultOpenRouterConfig: OpenRouterConfig = {
   // - "openai/gpt-4o" (eccellente per reasoning)
   // - "google/gemini-2.0-flash-thinking-exp:free" (gratuito, veloce, supporta tools)
   // - "meta-llama/llama-3.3-70b-instruct" (open source potente)
-  model: "google/gemini-2.0-flash-001",
+  model: "google/gemini-2.5-flash",
   
   // Base URL for OpenRouter API
   baseURL: "https://openrouter.ai/api/v1",
